@@ -24,3 +24,13 @@ proc get_cpu_usuage {} {
 	}
 	return 0
 }
+
+# Procedure to get memory usage
+proc get_memory_usage {} {
+	set mem_info [exec cat /proc/meminfo]
+	set total_memory [lindex [regexp -inline {MemTotal:\s+(\d+)} $mem_info] 1]
+	set available_memory [lindex [regexp -inline {MemAvailable:\s+(\d+)} $mem_info] 1]
+	set used_memory [expr {$total_memory - $available_memory}]
+	set memory_usage [expr {($used_memory * 100.0) / $total_memory}]
+	return [format "%.2f" $memory_usage]
+}

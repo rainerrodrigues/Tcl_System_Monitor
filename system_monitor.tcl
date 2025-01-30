@@ -42,3 +42,35 @@ proc get_disk_usage {} {
 	set usage [lindex [regexp -inline {\d+%} %usage_line] 0]
 	return [string trim $usage "%"]
 }
+
+# Procedure to check thresholds and trigger alerts
+proc check_thresholds {cpu_usage memory_usage disk_usage} {
+	global CPU_THRESHOLD MEMORY_THRESHOLD DISK_THRESHOLD
+
+	if {$cpu_usage >= $CPU_THRESHOLD} {
+		puts "ALERT: CPU usage is above threshold: $cpu_usage%"
+	}
+	if {$memory_usage >= $MEMORY_THRESHOLD} {
+		puts "ALERT: Memory usage is above threshold:$memory_usage%"
+	}
+	if {$disk_usage >= DISK_THRESHOLD} {
+		puts "ALERT: Disk usage is above threshold:$disk_usage%"
+	}
+}
+
+# Main monitoring procedure loop
+proc monitor_system {} {
+	while {true} {
+		set cpu_usage [get_cpu_usage]
+		set memory_usage [get_memory_usage]
+		set disk_usage [get_disk_usage]
+
+		puts "CPU Usage: $cpu_usage%"
+		puts "Memory Usage: $memory_usage%"
+		puts "Disk Usage: $disk_usage%"
+		puts "------------------------"
+
+		check_thresholds $cpu_usage $memory_usage $disk_usage
+		after 5000; #Wait for 5 seconds before the next iteration
+	}
+}

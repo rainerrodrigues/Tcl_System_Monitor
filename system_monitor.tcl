@@ -1,4 +1,3 @@
-package require Tclx;
 
 #Configuration: Set Thresholds for alerts
 set CPU_THRESHOLD 80; #CPU usage threshold in percentage
@@ -8,7 +7,10 @@ set DISK_THRESHOLD 90; #Disk usage threshold in percentagge
 # Procedure to get CPU usage
 proc get_cpu_usuage {} {
 	set total_usage 0
-	set cpu_info [exec cat /proc/stat]
+	if {[catch {exec cat /proc/stat} cpu_info]} {
+		puts "Error reading /proc/stat"
+		return 0
+	}
 	set lines [split $cpu_info "\n"]
 	foreach line $lines {
 		if {[string match "cpu *" $line]} {
@@ -27,7 +29,11 @@ proc get_cpu_usuage {} {
 
 # Procedure to get memory usage
 proc get_memory_usage {} {
-	set mem_info [exec cat /proc/meminfo]
+	if {[catch {exec cat /proc/meminfo} mem_info]} {
+		puts "Error reading /proc/meminfo"
+		return 0
+	}
+	# set mem_info [exec cat /proc/meminfo]
 	set total_memory [lindex [regexp -inline {MemTotal:\s+(\d+)} $mem_info] 1]
 	set available_memory [lindex [regexp -inline {MemAvailable:\s+(\d+)} $mem_info] 1]
 	set used_memory [expr {$total_memory - $available_memory}]
@@ -37,7 +43,11 @@ proc get_memory_usage {} {
 
 #Procedure to get disk usage
 proc get_disk_usage {} {
-	set disk_info [exec df -h /]
+	if {[catch {exec df -h /} disk_info]} {
+		puts "Error running df command"
+		return 0
+	}
+	# set disk_info [exec df -h /]
 	set usage_line [lindex [split $disk_info "\n"] 1]
 	set usage [lindex [regexp -inline {\d+%} %usage_line] 0]
 	return [string trim $usage "%"]

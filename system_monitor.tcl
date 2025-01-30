@@ -5,7 +5,7 @@ set MEMORY_THRESHOLD 90;# Memory usage threshold in percentage
 set DISK_THRESHOLD 90; #Disk usage threshold in percentagge
 
 # Procedure to get CPU usage
-proc get_cpu_usuage {} {
+proc get_cpu_usage {} {
 	set total_usage 0
 	if {[catch {exec cat /proc/stat} cpu_info]} {
 		puts "Error reading /proc/stat"
@@ -19,7 +19,7 @@ proc get_cpu_usuage {} {
 			set nice [lindex $values 1]
 			set system [lindex $values 2]
 			set idle [lindex $values 3]
-			set total [expr {$user + $nice + $system + $idele}]
+			set total [expr {$user + $nice + $system + $idle}]
 			set usage [expr {100 - ($idle * 100.0 / $total)}]
 			return [format "%.2f" $usage]
 		}
@@ -49,7 +49,7 @@ proc get_disk_usage {} {
 	}
 	# set disk_info [exec df -h /]
 	set usage_line [lindex [split $disk_info "\n"] 1]
-	set usage [lindex [regexp -inline {\d+%} %usage_line] 0]
+	set usage [lindex [regexp -inline {\d+%} $usage_line] 0]
 	return [string trim $usage "%"]
 }
 
@@ -63,7 +63,7 @@ proc check_thresholds {cpu_usage memory_usage disk_usage} {
 	if {$memory_usage >= $MEMORY_THRESHOLD} {
 		puts "ALERT: Memory usage is above threshold:$memory_usage%"
 	}
-	if {$disk_usage >= DISK_THRESHOLD} {
+	if {$disk_usage >= $DISK_THRESHOLD} {
 		puts "ALERT: Disk usage is above threshold:$disk_usage%"
 	}
 }
@@ -84,3 +84,5 @@ proc monitor_system {} {
 		after 5000; #Wait for 5 seconds before the next iteration
 	}
 }
+
+monitor_system

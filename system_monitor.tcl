@@ -34,3 +34,11 @@ proc get_memory_usage {} {
 	set memory_usage [expr {($used_memory * 100.0) / $total_memory}]
 	return [format "%.2f" $memory_usage]
 }
+
+#Procedure to get disk usage
+proc get_disk_usage {} {
+	set disk_info [exec df -h /]
+	set usage_line [lindex [split $disk_info "\n"] 1]
+	set usage [lindex [regexp -inline {\d+%} %usage_line] 0]
+	return [string trim $usage "%"]
+}

@@ -99,8 +99,28 @@ proc check_thresholds {cpu_usage memory_usage disk_usage} {
 	}
 }
 
+#Graphical Interface
+proc create_gui {} {
+	global cpu_label memory_label disk_label
+	toplevel .monitor
+	wm title .monitor "System Monitor"
+	label .monitor.cpu_label -text "CPU Usage: 0.00%" -font {Arial 12}
+	label .monitor.memory_label -text "Memory Usage: 0.00%" -font {Arial 12}
+	label .monitor.disk_label -text "Disk Usage: 0.00%" -font {Arial 12}
+	pack .monitor.cpu_label .monitor.memory_label .monitor.disk_label -side top -padx 20 -pady 10
+}
+
+#Update GUI with current usage
+proc update_gui {cpu_usage memory_usage disk_usage} {
+	global cpu_label memory_label disk_label
+	.monitor.cpu_label configure -text "CPU Usage: $cpu_usage%"
+	.monitor.memory_label configure -text "Memory Usage: $memory_usage%"
+	.monitor.disk_label configure -text "Disk Usage: $disk_usage%"
+}
+
 # Main monitoring procedure loop
 proc monitor_system {} {
+	create_gui
 	while {true} {
 		set cpu_usage [get_cpu_usage]
 		set memory_usage [get_memory_usage]
@@ -111,9 +131,13 @@ proc monitor_system {} {
 		puts "Disk Usage: $disk_usage%"
 		puts "------------------------"
 
+		log_data $cpu_usage $memory_usage $disk_usage
 		check_thresholds $cpu_usage $memory_usage $disk_usage
+		update_gui $cpu_usage $memory_usage $disk_usage
+
 		after 5000; #Wait for 5 seconds before the next iteration
 	}
 }
 
+load_config
 monitor_system

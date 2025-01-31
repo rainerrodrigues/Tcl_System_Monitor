@@ -1,8 +1,26 @@
 
+package require Tk;
+
+set CONFIG_FILE "system_monitor.conf" ;#Configuration file
+
 #Configuration: Set Thresholds for alerts
 set CPU_THRESHOLD 80; #CPU usage threshold in percentage
 set MEMORY_THRESHOLD 90;# Memory usage threshold in percentage
 set DISK_THRESHOLD 90; #Disk usage threshold in percentagge
+
+
+# Log file
+set LOG_FILE "system_monitor.log"
+
+# Load configuration fromfile
+proc load_config {} {
+	global CONFIG_FILE CPU_THRESHOLD MEMORY_THRESHOLD DISK_THRESHOLD
+	if {[file exists $CONFIG_FILE]} {
+		source $CONFIG_FILE
+	} else {
+		puts "Config file not found. Using default settings."
+	}
+}
 
 # Procedure to get CPU usage
 proc get_cpu_usage {} {
@@ -51,6 +69,19 @@ proc get_disk_usage {} {
 	set usage_line [lindex [split $disk_info "\n"] 1]
 	set usage [lindex [regexp -inline {\d+%} $usage_line] 0]
 	return [string trim $usage "%"]
+}
+
+# Function to log data 
+proc log_data {cpu_usage memory_usage disk_usage} {
+	global LOG_FILE
+	set timestamp [clock format [clock seconds] -format "%Y-%m-%d %H:%M:%S"]
+	set log_entry "Stimestamp - CPU: $cpu_usage%, Memory: $memory_usage%, Disk: $disk_usage%"
+	if {[catch {open $LOG_FILE a} log_fd]} {
+		puts "Error opening log file: $log_fd"
+	} else {
+		puts $log_fd $log_entry
+		close $log_fd
+	}
 }
 
 # Procedure to check thresholds and trigger alerts

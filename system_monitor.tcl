@@ -1,4 +1,4 @@
-
+#!/usr/bin/env tclsh
 package require Tk;
 
 set CONFIG_FILE "system_monitor.conf" ;#Configuration file
@@ -102,12 +102,17 @@ proc check_thresholds {cpu_usage memory_usage disk_usage} {
 #Graphical Interface
 proc create_gui {} {
 	global cpu_label memory_label disk_label
+	puts "Creating GUI..."
 	toplevel .monitor
+	wm geometry .monitor 400x200; #Set Window size
 	wm title .monitor "System Monitor"
-	label .monitor.cpu_label -text "CPU Usage: 0.00%" -font {Arial 12}
-	label .monitor.memory_label -text "Memory Usage: 0.00%" -font {Arial 12}
-	label .monitor.disk_label -text "Disk Usage: 0.00%" -font {Arial 12}
+	label .monitor.cpu_label -text "CPU Usage: 0.00%" -font {Arial 12} -foreground black -background white
+	label .monitor.memory_label -text "Memory Usage: 0.00%" -font {Arial 12} -foreground black -background white
+	label .monitor.disk_label -text "Disk Usage: 0.00%" -font {Arial 12} -foreground black -background white
+	puts "Label widgets created."
 	pack .monitor.cpu_label .monitor.memory_label .monitor.disk_label -side top -padx 20 -pady 10
+	puts "GUI created successfully."
+	update;#Force the event loop to update
 }
 
 #Update GUI with current usage
@@ -121,23 +126,27 @@ proc update_gui {cpu_usage memory_usage disk_usage} {
 # Main monitoring procedure loop
 proc monitor_system {} {
 	create_gui
-	while {true} {
-		set cpu_usage [get_cpu_usage]
-		set memory_usage [get_memory_usage]
-		set disk_usage [get_disk_usage]
-
-		puts "CPU Usage: $cpu_usage%"
-		puts "Memory Usage: $memory_usage%"
-		puts "Disk Usage: $disk_usage%"
-		puts "------------------------"
-
-		log_data $cpu_usage $memory_usage $disk_usage
-		check_thresholds $cpu_usage $memory_usage $disk_usage
-		update_gui $cpu_usage $memory_usage $disk_usage
-
-		after 5000; #Wait for 5 seconds before the next iteration
-	}
+	update_gui  0 0 0;#Initializing with dummy values
+	after 1000 update_monitor;#Start the monitoring loop after 1 second
 }
+
+proc update_monitor {} {
+	set cpu_usage [get_cpu_usage]
+	set memory_usage [get_memory_usage]
+	set disk_usage [get_disk_usage]
+
+	puts "CPU Usage: $cpu_usage%"
+	puts "Memory Usage: $memory_usage%"
+	puts "Disk Usage: $disk_usage%"
+	puts "------------------------"
+
+	log_data $cpu_usage $memory_usage $disk_usage
+	check_thresholds $cpu_usage $memory_usage $disk_usage
+	update_gui $cpu_usage $memory_usage $disk_usage
+
+	after 5000 update_monitor; #Wait for 5 seconds before the next iteration
+}
+
 
 load_config
 monitor_system
